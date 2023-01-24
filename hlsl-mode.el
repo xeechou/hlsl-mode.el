@@ -45,7 +45,7 @@
 
 (defvar hlsl-mode-hook nil)
 
-(defvar hlsl-mode-menu nil "Menu for GLSL mode")
+(defvar hlsl-mode-menu nil "Menu for HLSL mode")
 
 (defvar hlsl-mode-map
   (let ((hlsl-mode-map (make-sparse-keymap)))
@@ -279,7 +279,7 @@
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-padding) "")
   (easy-menu-add hlsl-menu)
-  (add-to-list 'align-c++-modes 'glsl-mode)
+  (add-to-list 'align-c++-modes 'hlsl-mode)
   (c-run-mode-hooks 'c-mode-common-hook)
   (run-mode-hooks 'hlsl-mode-hook)
   :after-hook (progn (c-make-noise-macro-regexps)
