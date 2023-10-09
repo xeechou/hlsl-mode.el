@@ -30,10 +30,8 @@
 ;; and pre-specified fontifications.
 ;;; Code:
 
-(eval-when-compile			; required and optional libraries
-  (require 'cc-mode)
-  (require 'find-file))
-
+(require 'cc-mode)
+(require 'find-file)
 (require 'align)
 
 (defgroup hlsl nil
