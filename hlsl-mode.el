@@ -56,9 +56,12 @@
 ;; keywords
 (eval-and-compile
   (defvar hlsl-type-list
-    '("half" "float" "double" "int" "uint""byte" "bool"     ;; scalar
+    '(
+      ;;; builtin types ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      ;; scalar
+      "half" "float" "double" "int" "uint""byte" "bool"
       "min16float" "min10float"  "min16int" "min16uint" "min12int" "min12uint"
-      ;; vector
+      ;; vectorp
       "half1" "half2" "half3" "half4" "float1" "float2" "float3" "float4"
       "double1" "double2" "double3" "double4"
       "int1" "int2" "int3" "int4" "uint1" "uint2" "uint3" "uint4"
@@ -98,70 +101,152 @@
       "bool2x1" "bool2x2" "bool2x3" "bool2x4"
       "bool3x1" "bool3x2" "bool3x3" "bool3x4"
       "bool4x1" "bool4x2" "bool4x3" "bool4x4"
+      ;;user defined typedef vector<bool, 1>
+      "vector" "matrix"
+
+      ;;; hardware types ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       ;;sampler
       "sampler" "sampler1D" "sampler2D" "sampler3D" "samplerCUBE"
       "SamplerState"
-      ;;texture
-      "Texture1D" "Texture2D" "Texture3D" "TextureCube" "Texture2DMS"
-      "Texture1DArray" "Texture2DArray" "Texture2DMSArray" "TextureCubeArray"
-      ;;RWTexture
-      "RWTexture1D" "RWTexture2D" "RWTexture3D" "RWTexture1DArray"
-      "RWTexture3DArray"
+
+      ;; texture1d
+      "Texture1D" "Texture1DArray" "RWTexture1D" "RWTexture1DArray"
+      ;; texture2d
+      "Texture2D" "Texture2DArray" "Texture2DMS"  "Texture2DMSArray"
+      "RWTexture2D"  "RWTexture2DArray"
+      ;; texture 3d
+      "Texture3D"  "RWTexture3D"  "RWTexture3D" "TextureCube"
+      ;; textureCub
+      "TextureCube"  "TextureCubeArray"
+      ;;rasterizer order views
+      "RasterizerOrderedTexture1D" "RasterizerOrderedTexture1DArray"
+      "RasterizerOrderedTexture2D" "RasterizerOrderedTexture2DArray"
+      "RasterizerOrderedTexture3D"
+
       ;;buffer
       "Buffer" "ByteAddressBuffer" "StructuredBuffer" "TextureBuffer"
-      "tbuffer" "cbuffer" "AppendStructuredBuffer" "ConsumeStructuredBuffer"
-      "ConstantBuffer"
-      "RWBuffer" "RWByteAddressBuffer" "RWStructuredBuffer"
+      "AppendStructuredBuffer" "ConsumeStructuredBuffer"
+      "ConstantBuffer" "RWBuffer" "RWByteAddressBuffer" "RWStructuredBuffer"
+      ;; Rasterizer Order Views
+      "RasterizerOrderedBuffer" "RasterizerOrderedByteAddressBuffer"
+      "RasterizerOrderedStructuredBuffer"
+
       ;;ray tracing
       "RaytracingAccelerationStructure"
-      ;;user defined typedef vector<bool, 1>
-      "vector" "matrix"
+
+      ;; Geometry shader stream outputs
+      "PointStream" "LineStream" "TriangleStream"
       ))
 
   (defvar hlsl-qualifier-list
-    '("const" "precise" "nointerpolation"  "shared" "groupshared"
-      "column_major" "row_major" "uniform"
+    '(
+      ;; Misc
+      "snorm" "unorm" "in" "inline" "inout" "precise" "extern" "nointerpolation"
+      "precise" "shared" "groupshared" "static" "uniform" "volatile" "const"
+      "row_major" "column_major" "export" "linear" "centroid" "noperspective"
+      "sample" "globallycoherent" "out"
+
+      ;; Geom shader primitives
+      "point" "line" "triangle" "lineadj" "triangledj"
+      "pixelfragment" "vertexfragment"
+
       ))
 
   (defvar hlsl-keyword-list
-    '("break" "continue" "do" "for" "while" "if" "else" "subroutine" "extern"
+    '(
+      ;; control flow
+      "break" "continue" "do" "for" "while" "if" "else" "subroutine" "extern"
       "discard" "return" "precision" "struct" "class" "switch" "default" "case"
-      "namespace" "void" "volatile" "static" "extern" "inout" "in" "out"
+      "namespace" "void" "volatile" "static" "extern" "cbuffer" "tbuffer" "packoffset"
       "inline"
+
+      ;; Attributes
+      "maxvertexcount" "domain" "earlydepthstencil" "instance" "maxtessfactor"
+      "numthreads" "outputcontrolpoints" "outputtopology" "partitioning"
+      "patchconstantfunc"
+
+      ;; Branching attributes
+      "unroll" "loop" "fastopt" "allow_uav_condition" "branch" "flatten"
+      "forcecase" "call"
       ))
 
   (defvar hlsl-reserved-list
-    '("typedef" "asm" "unsigned" "enum" "export"))
+    '(
+      ;; [2022/01/31] Just the reserved words found on:
+      ;; https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-appendix-reserved-words
+      "auto" "case" "catch" "char" "class" "const_cast" "default" "delete" "dynamic_cast"
+      "enum" "explicit" "friend" "goto" "long" "mutable" "new" "operator" "private"
+      "protected" "public" "reinterpret_cast" "short" "signed" "sizeof" "static_cast"
+      "template" "this" "throw" "try" "typename" "union" "unsigned" "using" "virtual"
+      ))
 
   (defvar hlsl-builtin-list
-    '("abort" "abs" "acos" "all" "AllMemoryBarrier"
-      "AllMemoryBarrierWithGroupSync" "any" "asdouble" "asfloat" "asin" "asint"
-      "asuint" "atan" "atan2" "ceil" "CheckAccessFullyMapped" "clamp" "clip"
-      "cos" "cosh" "countbits" "cross" "D3DCOLORtoUBYTE4" "ddx" "ddx_coarse"
-      "ddx_fine" "ddy" "ddy_coarse" "ddy_fine" "degrees" "determinant"
-      "DeviceMemoryBarrier" "DeviceMemoryBarrierWithGroupSync" "distance"
-      "dot" "dst" "errorf" "EvaluateAttributeAtCentroid"
-      "EvaluateAttributeAtSample" "EvaluateAttributeSnapped" "exp" "exp2"
-      "f16tof32" "f32tof16" "faceforward" "firstbithigh" "firstbitlow" "floor"
-      "fma" "fmod" "frac" "frexp" "fwidth" "GetRenderTargetSampleCount"
-      "GetRenderTargetSamplePosition" "GroupMemoryBarrier"
-      "GroupMemoryBarrierWithGroupSync" "InterlockedAdd" "InterlockedAnd"
-      "InterlockedCompareExchange" "InterlockedCompareStore"
-      "InterlockedExchange" "InterlockedMax" "InterlockedMin" "InterlockedOr"
-      "InterlockedXor" "isfinite" "isinf" "isnan" "ldexp" "length" "lerp"
-      "lit" "log" "log10" "log2" "mad" "max" "min" "modf" "msad4" "mul" "noise"
-      "normalize" "pow" "printf" "Process2DQuadTessFactorsAvg"
-      "Process2DQuadTessFactorsMax" "Process2DQuadTessFactorsMin"
-      "ProcessIsolineTessFactors" "ProcessQuadTessFactorsAvg"
-      "ProcessQuadTessFactorsMax" "ProcessQuadTessFactorsMin"
-      "ProcessTriTessFactorsAvg" "ProcessTriTessFactorsMax"
-      "ProcessTriTessFactorsMin" "radians" "rcp" "reflect" "refract"
-      "reversebits" "round" "rsqrt" "saturate" "sign" "sin" "sincos" "sinh"
-      "smoothstep" "sqrt" "step" "tan" "tanh" "tex1D" "tex1Dbias" "tex1Dgrad"
-      "tex1Dlod" "tex1Dproj" "tex2D" "tex2Dbias" "tex2Dgrad" "tex2Dlod"
-      "tex2Dproj" "tex3D" "tex3Dbias" "tex3Dgrad" "tex3Dlod" "tex3Dproj"
-      "texCUBE" "texCUBEbias" "texCUBEgrad" "texCUBElod" "texCUBEproj"
-      "transpose" "trunc"
+    '(
+      ;; basics
+      "abort" "abs" "acos" "all"
+      "any" "asdouble" "asfloat" "asin" "asint" "asint" "asuint" "asuint" "atan" "atan2"
+      "ceil" "CheckAccessFullyMapped" "clamp" "clip" "cos" "cosh" "countbits" "cross"
+      "D3DCOLORtoUBYTE4" "ddx" "ddx_coarse" "ddx_fine" "ddy" "ddy_coarse" "ddy_fine"
+      "degrees" "determinant"
+      "distance" "dot" "dst" "errorf" "exp" "exp2" "f16tof32" "f32tof16" "faceforward"
+      "firstbithigh" "firstbitlow" "floor" "fma" "fmod" "frac" "frexp" "fwidth"
+      "isfinite"
+      "isinf" "isnan" "ldexp" "length" "lerp" "lit" "log" "log10" "log2" "mad" "max"
+      "min" "modf" "msad4" "mul" "noise" "normalize" "pow" "printf" "radians"
+      "rcp" "reflect" "refract" "reversebits" "round" "rsqrt" "saturate" "sign"
+      "sin" "sincos" "sinh" "smoothstep" "sqrt" "step" "tan" "tanh"
+
+      ;; textures
+      "tex1D" "tex1Dbias" "tex1Dgrad" "tex1Dlod" "tex1Dproj"
+      "tex2D" "tex2Dbias" "tex2Dgrad" "tex2Dlod" "tex2Dproj" "tex3D" "tex3Dbias"
+      "tex3Dgrad" "tex3Dlod" "tex3Dproj" "texCUBE" "texCUBEbias" "texCUBEgrad" "texCUBElod"
+      "texCUBEproj" "transpose" "trunc"
+
+      ;; Textures/Buffers
+      "CalculateLevelOfDetail" "CalculateLevelOfDetailUnclamped" "Gather" "GetDimensions"
+      "GetSamplePosition" "Sample" "SampleBias" "SampleCmp" "SampleGrad" "SampleLevel"
+      "Load" "Load2" "Load3" "Load4" "Store" "Store2" "Store3" "Store4"
+      "GatherRed" "GatherGreen" "GatherBlue" "GatherAlpha" "GatherCmp" "GatherCmpRed"
+      "GatherCmpGreen" "GatherCmpBlue" "GatherCmpAlpha"
+      "Sample" "SampleBias" "SampleCmp" "SampleCmpLevelZero" "SampleGrad" "SampleLevel"
+
+      ;; pixel shader
+      "EvaluateAttributeAtCentroid" "EvaluateAttributeAtSample" "EvaluateAttributeSnapped"
+      "GetRenderTargetSampleCount" "GetRenderTargetSamplePosition"
+
+
+      ;; shader-model 5 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      ;; Atomic/compute shader
+      "DeviceMemoryBarrier" "DeviceMemoryBarrierWithGroupSync"
+      "InterlockedAdd" "InterlockedAnd" "InterlockedCompareExchange"
+      "InterlockedCompareStore" "InterlockedExchange" "InterlockedMax"
+      "InterlockedMin" "InterlockedOr" "InterlockedXor" "GroupMemoryBarrierWithGroupSync"
+      "AllMemoryBarrier" "AllMemoryBarrierWithGroupSync" "GroupMemoryBarrier"
+
+      ;; 5 Hull Shader
+      "Process2DQuadTessFactorsAvg" "Process2DQuadTessFactorsMax" "Process2DQuadTessFactorsMin"
+      "ProcessIsolineTessFactors" "ProcessQuadTessFactorsAvg" "ProcessQuadTessFactorsMax"
+      "ProcessQuadTessFactorsMin" "ProcessTriTessFactorsAvg" "ProcessTriTessFactorsMax"
+      "ProcessTriTessFactorsMin"
+
+      ;; Geometry shader streams
+      "Append" "RestartStrip"
+
+      ;; shader-model 6 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      ;; Wave Intrinsics
+      "QuadReadAcrossDiagonal" "QuadReadLaneAt" "QuadReadAcrossX" "QuadReadAcrossY"
+      "WaveActiveAllEqual" "WaveActiveBitAnd" "WaveActiveBitOr" "WaveActiveBitXor"
+      "WaveActiveCountBits" "WaveActiveMax" "WaveActiveMin" "WaveActiveProduct"
+      "WaveActiveSum" "WaveActiveAllTrue" "WaveActiveAnyTrue" "WaveActiveBallot"
+      "WaveGetLaneCount" "WaveGetLaneIndex" "WaveIsFirstLane" "WavePrefixCountBits"
+      "WavePrefixProduct" "WavePrefixSum" "WaveReadLaneFirst" "WaveReadLaneAt"
+
+      ;; shader-model 6.3 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      "AcceptHitAndEndSearch" "CallShader" "IgnoreHit" "PrimitiveIndex"
+      "ReportHit" "TraceRay"
+
+      ;; Unsorted
+      "Consume" "DecrementCounter" "IncrementCounter"
       ))
 
   (defvar hlsl-const-list
@@ -194,6 +279,7 @@
     (format "\\<\\(%s\\)\\>" (regexp-opt re))))
 
 (regexp-opt hlsl-keyword-list)
+(regexp-opt hlsl-builtin-list)
 (defconst hlsl-font-lock-keywords-1
   `(
     ;; macros
@@ -209,6 +295,7 @@
     (,(hlsl-ppre hlsl-type-list)      . 'font-lock-type-face)
     (,(hlsl-ppre hlsl-qualifier-list) . 'font-lock-keyword-face)
     (,(hlsl-ppre hlsl-keyword-list)   . 'font-lock-keyword-face)
+    (,(hlsl-ppre hlsl-reserved-list)   . 'font-lock-keyword-face)
     ;;function name
     ("\\<\\(\\sw+\\) ?(" (1 'font-lock-function-name-face))
     ;;others
@@ -243,26 +330,26 @@
 ;; menu
 (easy-menu-define hlsl-menu hlsl-mode-map
   "HLSL Menu"
-    `("HLSL"
-      ["Comment Out Region"     comment-region
-       (c-fn-region-is-active-p)]
-      ["Uncomment Region"       (comment-region (region-beginning)
-						(region-end) '(4))
-       (c-fn-region-is-active-p)]
-      ["Indent Expression"      c-indent-exp
-       (memq (char-after) '(?\( ?\[ ?\{))]
-      ["Indent Line or Region"  c-indent-line-or-region t]
-      ["Fill Comment Paragraph" c-fill-paragraph t]
-      "----"
-      ["Backward Statement"     c-beginning-of-statement t]
-      ["Forward Statement"      c-end-of-statement t]
-      "----"
-      ["Up Conditional"         c-up-conditional t]
-      ["Backward Conditional"   c-backward-conditional t]
-      ["Forward Conditional"    c-forward-conditional t]
-      "----"
-      ["Backslashify"           c-backslash-region (c-fn-region-is-active-p)]
-      ))
+  `("HLSL"
+    ["Comment Out Region"     comment-region
+     (c-fn-region-is-active-p)]
+    ["Uncomment Region"       (comment-region (region-beginning)
+					      (region-end) '(4))
+     (c-fn-region-is-active-p)]
+    ["Indent Expression"      c-indent-exp
+     (memq (char-after) '(?\( ?\[ ?\{))]
+    ["Indent Line or Region"  c-indent-line-or-region t]
+    ["Fill Comment Paragraph" c-fill-paragraph t]
+    "----"
+    ["Backward Statement"     c-beginning-of-statement t]
+    ["Forward Statement"      c-end-of-statement t]
+    "----"
+    ["Up Conditional"         c-up-conditional t]
+    ["Backward Conditional"   c-backward-conditional t]
+    ["Forward Conditional"    c-forward-conditional t]
+    "----"
+    ["Backslashify"           c-backslash-region (c-fn-region-is-active-p)]
+    ))
 
 
 ;;;###autoload
