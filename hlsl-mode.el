@@ -372,6 +372,11 @@
   :after-hook (progn (c-make-noise-macro-regexps)
 		     (c-make-macro-with-semi-re)
 		     (c-update-modeline))
+  (with-eval-after-load 'company-keywords
+    (add-to-list 'company-keywords-alist
+		 `(hlsl-mode . ,(append hlsl-type-list hlsl-qualifier-list
+					hlsl-keyword-list hlsl-reserved-list
+					hlsl-builtin-list))))
   )
 
 (provide 'hlsl-mode)
